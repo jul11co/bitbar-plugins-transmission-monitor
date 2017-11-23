@@ -1,7 +1,7 @@
 bitbar-plugins-transmission-monitor
 ===
 
-Monitor Tranmission torrent downloads
+🐶 Monitor Tranmission torrent downloads
 
 #### Install
 

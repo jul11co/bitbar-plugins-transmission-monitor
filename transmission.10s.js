@@ -6,12 +6,9 @@
 // <bitbar.desc>Monitor Tranmission torrent downloads</bitbar.desc>
 
 // To install
-// npm install async moment bytes transmission 
+// npm install bytes transmission 
 
-var async = require('async');
-var moment = require('moment');
 var bytes = require('bytes');
-
 var Transmission = require('transmission');
 
 var transmission = new Transmission({
