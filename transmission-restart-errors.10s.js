@@ -4,21 +4,22 @@
 // <bitbar.author>Jul11Co</bitbar.author>
 // <bitbar.author.github>Jul11Co</bitbar.author.github>
 // <bitbar.desc>Monitor Tranmission torrent downloads</bitbar.desc>
+// <bitbar.dependencies>node</bitbar.desc>
 
 // To install
-// npm install bytes transmission 
+// npm install async bytes transmission 
 
+var async = require('async');
 var bytes = require('bytes');
+
 var Transmission = require('transmission');
 
 var transmission = new Transmission({
-  host: 'localhost',             // default: 'localhost'
+  host: '192.168.11.107',        // default: 'localhost'
   port: 9091,                    // default: 9091
   username: 'transmission',      // default: blank
   password: '12345678'           // default: blank
 });
-
-// console.log("🐶");console.log('---');
 
 // Get torrent state 
 function getStatusType(type){
@@ -62,14 +63,94 @@ function getAllTorrents(options, callback){
 
   transmission.get(function(err, result){
     if (err){
-      // console.log(err);
       return callback(err);
     }
     else {
-      // console.log(result);
       if (result) return callback(null, result.torrents || []);
       else return callback(new Error('Invalid result'));
     }
+  });
+}
+
+// To start a paused / stopped / error torrent which is still in queue 
+function startTorrent(id, options, callback){
+  if (typeof options == 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function(err) {};
+
+  // start
+  transmission.start(id, function(err, result){
+    if (err){
+      return callback(err);
+    }
+    setTimeout(function() {
+      // recheck
+      transmission.get(id, function(err, result) {
+        if (err){
+          return callback(err);
+        }
+        else if (result.torrents && result.torrents.length) {
+          if (result.torrents[0].status == 3 || result.torrents[0].status == 4) {
+            // Torrent started
+          }
+        }
+        return callback();
+      });
+    }, 2000);
+  });
+}
+
+// To start a paused / stopped / error torrent which is still in queue 
+function startTorrentNow(id, options, callback){
+  if (typeof options == 'function') {
+    callback = options;
+    options = {};
+  }
+  options = options || {};
+  callback = callback || function(err) {};
+
+  // start
+  transmission.startNow(id, function(err, result){
+    if (err){
+      return callback(err);
+    }
+    setTimeout(function() {
+      // recheck
+      transmission.get(id, function(err, result) {
+        if (err){
+          // console.log(err);
+          return callback(err);
+        }
+        else if (result.torrents && result.torrents.length) {
+          if (result.torrents[0].status == 3 || result.torrents[0].status == 4) {
+            // Torrent started
+          }
+        }
+        return callback();
+      });
+    }, 2000);
+  });
+}
+
+function restartErrorTorrents(torrents, callback) {
+  
+  var error_torrents = torrents.filter(function(torrent) {
+    return (torrent.status == 0 && torrent.error);
+  });
+  if (error_torrents.length == 0) {
+    return callback();
+  }
+
+  async.eachSeries(error_torrents, function(torrent, cb) {
+    // start error torrent
+    startTorrent(torrent.id, function(err) {
+      cb(err);
+    });
+  }, function(err) {
+    callback(err);
   });
 }
 
@@ -80,7 +161,7 @@ function update(done) {
       // console.log(err);
       return done(err);
     } else if (!torrents || torrents.length == 0) {
-      console.log("�");console.log('---');
+      console.log("🐶");console.log('---');
       console.log('No torrents | color=black');
       return done();
     }
@@ -148,7 +229,8 @@ function update(done) {
       console.log('---');
     });
 
-    return done();
+    // Restart error torrents
+    restartErrorTorrents(torrents, done);
   });
 }
 

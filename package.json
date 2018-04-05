@@ -4,6 +4,7 @@
   "description": "Monitor Tranmission torrent downloads",
   "author": "Jul11Co <jul.eleven.co@gmail.com>",
   "dependencies": {
+    "async": "^2.6.0",
     "bytes": "^3.0.0",
     "transmission": "^0.4.9"
   }
