@@ -15,7 +15,7 @@ var bytes = require('bytes');
 var Transmission = require('transmission');
 
 var transmission = new Transmission({
-  host: '192.168.11.107',        // default: 'localhost'
+  host: 'localhost',             // default: 'localhost'
   port: 9091,                    // default: 9091
   username: 'transmission',      // default: blank
   password: '12345678'           // default: blank
